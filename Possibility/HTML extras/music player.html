@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <script>
+    (function () {
+      var hasFrame = window.parent != window,
+        scripts = document.getElementsByTagName("script"),
+        current = scripts[scripts.length - 1],
+        config = current.getAttribute("data-config"),
+        head = document.getElementsByTagName("head")[0],
+        dest = location.href.replace(/wikplayer\=true/g, "wikplayer=false"),
+        destHost = dest.substr(0, dest.indexOf("/", 10));
+
+
+      var wik = "http://www.wikplayer.com/wik.html?16102012" + "#" + dest;
+      if (window.location.protocol == "https:") {
+        wik = "https://www.wikplayer.com/wik.html?16102012" + "#" + dest;
+      }
+
+
+      var wikHost = wik.substr(0, wik.indexOf("/", 10)),
+        isOutside = !hasFrame || location.href.indexOf("wikplayer=true") > 0,
+        postMessage = function (msg) {
+          return window.top.document.getElementById("wikframe").contentWindow.postMessage(msg, wikHost);
+        },
+        postFactory = function (obj, keys) {
+          var keys = keys.split(","),
+            post = function (key) {
+              return function (arg) {
+                var argStr = "";
+                if (typeof (arg) != "undefined") {
+                  argStr = (key.match(/(play|queue)/) ? "new Song(" : "(") + JSON.stringify(arg) + ")";
+                }
+                postMessage("WIK." + key + "(" + argStr + ")");
+              };
+            };
+          for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            obj[key] = post(key);
+          }
+        },
+        postConfig = function (config) {
+          if (!isOutside) {
+            postMessage("WIK.config(" + config + ")");
+          }
+        },
+        addEvent = function (elm, evType, fn) {
+          if (elm.addEventListener) {
+            elm.addEventListener(evType, fn);
+          } else {
+            if (elm.attachEvent) {
+              elm.attachEvent("on" + evType, fn);
+            } else {
+              elm["on" + evType] = fn;
+            }
+          }
+        },
+        isIE = (function () {
+          var undef, v = 3,
+            div = document.createElement("div"),
+            all = div.getElementsByTagName("i");
+          while (div.innerHTML = "<!--[if gt IE " + (++v) + "]><i></i><![endif]-->", all[0]) {}
+          return v > 4 ? v : undef;
+        })(),
+        isMobile = navigator.userAgent.match(/iPad|iPhone|Android|Blackberry/i),
+        init = function () {
+          if (!document.body) {
+            setTimeout(init, 10);
+            return;
+          }
+          if (isOutside) {
+            outside();
+          } else {
+            inside();
+          }
+        },
+        outside = function () {
+          var css =
+            "html,body{overflow:hidden;} body{margin:0;padding:0;border:0;} img,a,embed,object,div,address,table,iframe,p,span,form,header,section,footer{ display:none;border:0;margin:0;padding:0; } #tumblr_controls{display:none;} #wikframe{display:block; background-color:transparent; position:fixed; top:0px; left:0px; width:100%; height:100%; z-index:1667;} ";
+          var style = document.createElement("style");
+          style.type = "text/css";
+          style.id = "wikcss";
+          if (style.styleSheet) {
+            style.styleSheet.cssText = css;
+          } else {
+            style.appendChild(document.createTextNode(css));
+          }
+          head.appendChild(style);
+          var wikframe = document.createElement("iframe");
+          wikframe.frameBorder = 0;
+          wikframe.id = "wikframe";
+          wikframe.allowTransparency = true;
+          wikframe.src = wik;
+          document.body.insertBefore(wikframe, document.body.firstChild);
+          addEvent(window, "load", function () {
+            setTimeout(function () {
+              while (document.body.firstChild != wikframe) {
+                document.body.removeChild(document.body.firstChild);
+              }
+              while (document.body.lastChild != wikframe) {
+                document.body.removeChild(document.body.lastChild);
+              }
+            }, 0);
+          });
+          addEvent(window, "resize", function () {
+            wikframe.style.height = (function () {
+              if (typeof (window.innerHeight) == "number") {
+                return window.innerHeight;
+              } else {
+                if (document.documentElement && document.documentElement.clientHeight) {
+                  return document.documentElement.clientHeight;
+                } else {
+                  if (document.body && document.body.clientHeight) {
+                    return document.body.clientHeight;
+                  }
+                }
+              }
+            })();
+          });
+          var getPath = function () {
+              return location.href.replace(/#.*/, "");
+            },
+            path = getPath(),
+            hash = location.hash;
+          setInterval(function () {
+            if (getPath() != path) {
+              path = getPath();
+              window.wikinside.location.replace(path);
+            }
+            if (location.hash != hash) {
+              hash = location.hash;
+              window.wikinside.location.hash = hash;
+            }
+          }, 100);
+        },
+        inside = function () {
+          window.top.document.title = document.title;
+          var filter = function (host) {
+            return host.replace(/blogspot.[a-z.]*/i, "blogspot.com");
+          };
+          addEvent(document.body, "click", function (e) {
+            var tar = e.target;
+            while (!tar.tagName.match(/^(a|area)$/i) && tar != document.body) {
+              tar = tar.parentNode;
+            }
+            if (tar.tagName.match(/^(a|area)$/i) && !tar.href.match(/.(jpg|png)$/i) && !tar.href.match(
+                /^javascript:/)) {
+              if (tar.href.indexOf("#") == 0) {
+                if (tar.href != "#") {
+                  window.top.wikinside = window;
+                  window.top.location.hash = location.hash;
+                  e.preventDefault();
+                }
+              } else {
+                if (tar.title.match(/^(WIK:|\[WIK\])/i)) {
+                  var title = tar.title.replace(/^(WIK:|\[WIK\])( )?/i, "");
+                  var url = tar.href;
+                  WIK.play({
+                    title: title,
+                    url: url
+                  });
+                  e.preventDefault();
+                } else {
+                  if (tar.href.match(/\.css$/)) {
+                    window.open("https://www.wikplayer.com/#skin=" + tar.href, "_blank");
+                    window.focus();
+                    e.preventDefault();
+                  } else {
+                    if (filter(tar.href).indexOf(filter(location.host)) == -1) {
+                      if (tar.href.match(/^http(s)?/)) {
+                        window.open(tar.href, "_blank");
+                        window.focus();
+                        e.preventDefault();
+                      }
+                    } else {
+                      if (history.pushState) {
+                        var url = filter(tar.href).replace(filter(destHost), "");
+                        window.top.wikinside = window;
+                        window.top.history.pushState(null, null, url);
+                        e.preventDefault();
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          });
+          addEvent(window, "load", function () {});
+        };
+      var WIK = {};
+      postFactory(WIK, "queue,play,pause,next,previous,volume,skin,placement," +
+        "loadPlaylist,repeatMode,isShuffle,showPlaylist," + "togglePlaylist,toggleShuffle,changeRepeatMode");
+      if (window.WIK && window.WIKMusicPlayer) {
+        return;
+      }
+      if (!isMobile) {
+        init();
+      }
+      if (config) {
+        postConfig(config);
+      }
+      WIK.init = postConfig;
+      window.WIKMusicPlayer = window.WIKMusicPlayer || WIK;
+      window.WIK = window.WIK || WIK;
+    })();
+  </script>
+</head>
+
+<body>
+  <!-- Wikplayer https://www.wikplayer.com -->
+  <script type="text/javascript" src="https://www.wikplayer.com/code.js"
+    data-config="{'skin':'skins/wikfull/plainBlack/skin.css','volume':24,
+    'autoplay':false,'shuffle':true,'repeat':1,'showcomment':false,'marqueetexton':true,'placement':'top','showplaylist':false,'playlist':[{'title':'(It%27s%20Gonna%20Be)%20Okay','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DOOPjlw5zg40'},{'title':'2%20Heads','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DeSYM3Z9B8Us'},{'title':'All%20I%20Want','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Denu8wwbDVDM'},{'title':'All%20We%20Ever%20Knew','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DWxyBhnbV77E'},{'title':'Amazing%20Day','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DKDfD1jAU1DY'},{'title':'Anna%20Sun','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DqDVW81bXo0s'},{'title':'Banana%20Pancakes','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DOkyrIRyrRdY'},{'title':'Better%20Days','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Di-kHleNYIDc'},{'title':'Boston','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DN1ZBJ570wug'},{'title':'Bubbly','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DAWGqoCNbsvM'},{'title':'Budapest','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DwQ5k_fvscJk'},{'title':'Cardboard%20Castles','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D4D28RjBgRGY'},{'title':'Cecelia%20And%20The%20Satellite','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dqkh6q9-RkDE'},{'title':'Chasing%20Cars','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DXaKr98ktoxU'},{'title':'Collide','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dca9ub9rpNK4'},{'title':'Come%2C%20Thou%20Fount%20of%20Every%20Blessing','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DgPKpkrqBwNs'},{'title':'Cough%20Syrup','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D8LFWYsUtfV0'},{'title':'Crossfire','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D5AhU12zC8fc'},{'title':'Dear%20Theodosia','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DdRK5Bv9CD6I'},{'title':'Death%20And%20All%20His%20Friends','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DI_wcRxGbqdU'},{'title':'Dirty%20Paws','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D68UPqsVhQAg'},{'title':'Do%20You%20Remember','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D9HEGXRqaod8'},{'title':'Don%27t%20Wanna%20Wake%20Up','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dt1BF3nSHloE'},{'title':'Drops%20of%20Jupiter','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DlORcpT89t9c'},{'title':'Everglow','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dxn_1hFdE-5g'},{'title':'Fix%20You','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DgXq-14lV79s'},{'title':'Float%20on','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DopDB5bY3YCg'},{'title':'Forest%20Whitaker','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D5paPX_Id9iI'},{'title':'Forget%20You','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DawVi2QXC0ZE'},{'title':'From%20Eden','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DJmWbBUxSNUU'},{'title':'Green%20Eyes','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dgmyq9tIiu8g'},{'title':'Happily%20Ever%20After','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DKdjlUQYfWkY'},{'title':'Haven%27t%20Met%20You%20Yet','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DoBpvsSeBh54'},{'title':'Hear%20You%20Me','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D9pQo9OQlIB8'},{'title':'Home','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DDHEOF_rcND8'},{'title':'How%20to%20Save%20a%20Life','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcjVQ36NhbMk'},{'title':'Human','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dk4jR9P9YJGo'},{'title':'Hypnotized','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DWXmTEyq5nXc%26t%3D184s'},{'title':'I%20Believe','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dz7OaBsooTfQ'},{'title':'I%20Love%20You%20So%20Much','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dxm_3sIvmpWU'},{'title':'I%20Stand%20Corrected','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DtFfAey0GIBQ'},{'title':'I%20Took%20a%20Pill%20in%20Ibiza','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D41GZVVcxQps'},{'title':'I%27m%20Good','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DeHT5KNoWjzY'},{'title':'Impossible%20Year','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dd20ntGnYnm4'},{'title':'Ink','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dr59XOrCXerw'},{'title':'Into%20The%20Ocean','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DZES3nJQYJok'},{'title':'Iris','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DNdYWuo9OFAw'},{'title':'It%27s%20Not%20My%20Fault%2C%20I%27m%20Happy','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DvmtsXAmKSkA'},{'title':'It%27s%20a%20Beautiful%20Day','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DSUgxZ8_Iiqc'},{'title':'Kiss%20The%20Rain','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dso6ExplQlaY'},{'title':'Le%20Festin','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dp_hdmt4vpBo'},{'title':'Lemonade','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DGnWg_Vn1stg'},{'title':'Let%20Your%20Heart%20Hold%20Fast','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DkBqWtdMpies'},{'title':'Lost%20In%20My%20Mind','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DnyvQq0bvivc'},{'title':'Magic','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D1PvBc2TOpE4'},{'title':'Miracles','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DFYogZ1KER_k'},{'title':'Netflix%20Trip','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dlc9eEphSxqc'},{'title':'No%20More%20Bad%20Days','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D0SKw2duOcZ8'},{'title':'Now%20My%20Feet%20Won%27t%20Touch%20The%20Ground','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DfZIoFXmWbv0'},{'title':'Only%20One','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D2VCqZ0ZjjnE'},{'title':'Ordinary%20Human','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D4JbovsCJ2AE'},{'title':'Overjoyed','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DoPq5ABUlgh0'},{'title':'River%20Flows%20In%20You','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DkG9KSWYg-Jc'},{'title':'Rivers%20and%20Roads','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D2n3OAc5TgrY'},{'title':'Rollerblades','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DeyVfIkPbgDc'},{'title':'Roses','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DGirFUOs7Z1c'},{'title':'Safe%20%26%20Sound','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DRzhAS_GnJIc'},{'title':'San%20Francisco','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D8RZqPq1-1Tw'},{'title':'Say%20My%20Name','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DhnKMGIpzsio'},{'title':'Second%20Guessing%20Games','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D9qodjejRp8I'},{'title':'She%20Used%20To%20Be%20Mine','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D53GIADHxVzM'},{'title':'Sitting%2C%20Waiting%2C%20Wishing','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DIhTvifGShw4'},{'title':'Sloppy%20Seconds','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D7gNJ5cQGZJQ'},{'title':'Sois-moi','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DnFpvu8EG-kQ'},{'title':'Somewhere%20Only%20We%20Know','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DOextk-If8HQ'},{'title':'Sparks','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DAr48yzjn1PE'},{'title':'Stand%20By%20Me','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dvv2DSmy3Tro'},{'title':'Streetcar','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DK7K1lDHvfAI'},{'title':'Take%20a%20Walk','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dv_5P26wMiAo'},{'title':'Tenerife%20Sea','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DcHTEGQbtP1I'},{'title':'The%20Funeral','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DAo8FIszjKZg'},{'title':'The%20Lucky%20Ones','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DZBS5SGFwwC4'},{'title':'The%20Man%20Who%20Can%27t%20Be%20Moved','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DgS9o1FAszdk'},{'title':'The%20Master%27s%20Hand','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D-KMJlMaHTrM'},{'title':'The%20Scientist','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DW8KmhmpaKuk'},{'title':'The%20Show%20Goes%20On','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DuzvJvOl9Tx0'},{'title':'The%20Wind','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DW4-IZTZkTY8'},{'title':'This%20Is%20Gospel','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DdYsOozIM4wU'},{'title':'Thunder%20Clatter','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DPHy4n4cpuGs'},{'title':'Til%20Kingdom%20Come','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dyo49REpQCwA'},{'title':'True%20Colors','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dla0-5QFLr14'},{'title':'True%20Love','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DS2gpdDKUxKQ'},{'title':'Up%20%26%20Up','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DqfX2DMQUe1Y'},{'title':'Up%20With%20The%20Birds','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DFr0ecSWIG-k'},{'title':'Us%20Against%20the%20World','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DtHgIvdb3mag'},{'title':'What%20Would%20I%20Do%20Without%20You','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DNFbpKOsNwXA'},{'title':'Where%20Do%20You%20Run','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DbJNbeaSAU8g'},{'title':'Yellow','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Di-n75KVcGsw'},{'title':'You%27re%20Beautiful','url':'https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DoofSnsGkops'}]}">
+  </script>
+  <!-- Wikplayer code end -->
+</body>
+
+</html>

@@ -1,0 +1,161 @@
+:root {
+  /* old tree */
+  --text-color: #5b7a49;
+  /* fruit lime */
+  --main-color-light: #b0da2b;
+  --main-color: #696131;
+  --main-color-extra-light: #ef3800;
+  --standard-text: #585858;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 1.5rem;
+  font-family: Montserrat, sans-serif;
+}
+
+img {
+  display: block;
+  width: 100%;
+}
+
+.bg-img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -2;
+}
+
+h2,
+p {
+  margin: 0 auto;
+  max-width: 40rem;
+  color:var(--standard-text)
+}
+
+h2 {
+  padding: 2rem 2rem;
+}
+
+p {
+  padding: 0 2rem 1rem;
+  line-height: 1.5;
+}
+
+header {
+  background: linear-gradient(to bottom, #000, transparent);
+  color: #fff;
+  padding: 20px 2rem 40px;
+  font-size: 18px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+h1 {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  color: #fff;
+  text-shadow: 0 0 30px rgb(0 0 0 / 70%);
+  font-size: 3.5rem;
+  width: 100%;
+  text-align: center;
+  padding: 0 2rem;
+
+  transform: translate(-50%, -120%);
+}
+
+article {
+  background-color: #fff;
+  padding-bottom: 2rem;
+}
+
+.scroll-down {
+  background-color: var(--main-color-light);
+  padding: 1rem 2rem;
+
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+
+  cursor: pointer;
+
+  font-size: 1rem;
+  color: var(--standard-text);
+  text-align: center;
+
+  z-index: -1;
+}
+
+.scroll-down::after {
+  display: inline-block;
+  padding-bottom: 0;
+  padding-left: 10px;
+  content: "▼";
+}
+
+.solid-menu {
+  background: var(--main-color);
+  padding-bottom: 20px;
+}
+
+.full-spacer {
+  height: 100vh;
+}
+
+.small-spacer {
+  height: 60vh;
+}
+
+.hidden {
+  display: none;
+}
+
+section > article:last-child {
+  padding-bottom: 50vh;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  font-family: Montserrat, sans-serif;
+}
+
+nav .site-name {
+  flex: 1 0 auto;
+  font-size: 3rem;
+  text-decoration: none;
+}
+
+nav ul {
+  flex: 2 0 auto;
+
+  display: flex;
+
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+nav li {
+  flex: 1 0 0;
+}
+
+nav a {
+  padding: 1rem;
+  display: block;
+  white-space: nowrap;
+  text-align: right;
+  text-decoration: none;
+  color: #fff;
+}

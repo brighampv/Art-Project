@@ -1,0 +1,254 @@
+:root {
+  /* old tree */
+  --text-color: #5b7a49;
+  /* fruit lime */
+  --main-color-light: #b0da2b;
+  --main-color: #696131;
+  --main-color-extra-light: #ef3800;
+  --standard-text: #585858;
+}
+
+body {
+  font-family: "Cabin", sans-serif;
+  line-height: 1.5;
+  font-size: 1.25rem;
+  color: #333;
+  background-color: var(--background-color);
+}
+
+h1,
+h2,
+h3 {
+  font-family: "PT Sans", sans-serif;
+}
+
+h1 {
+  color: var(--main-color-light);
+  font-size: 4rem;
+  line-height: 1.25rem;
+  margin-top: 2em;
+}
+
+h2,
+h3 {
+  color: var(--main-color);
+  margin-bottom: 0;
+  margin-top: 3em;
+}
+
+p {
+  color: var(--standard-text);
+  margin-bottom: 1.5rem;
+}
+
+main,
+aside {
+  padding: 0 1rem;
+  max-width: 50rem;
+}
+
+main {
+  margin: 0 auto;
+}
+
+article {
+  margin-bottom: 1.5rem;
+}
+
+footer {
+  background-color: var(--main-color);
+  color: var(--main-color-light);
+  font-size: 1.5rem;
+  text-align: center;
+  padding: 2rem 1rem 1rem 5rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+aside {
+  margin-bottom: 8rem;
+  font-size: 2rem;
+  text-align: center;
+  padding: 3rem 0;
+}
+
+/* hero image styles */
+picture img {
+  width: 100%;
+}
+
+header div svg {
+  width: 40px;
+  stroke: ffffff;
+}
+/* form styles */
+#form {
+  width: 300px;
+}
+
+/* links */
+a {
+  user-select: none;
+}
+
+a[href]:link {
+  text-decoration: none;
+  color: var(--main-color);
+}
+
+a[href]:visited {
+  color: var(--main-color-light);
+}
+
+a[href]:hover {
+  text-decoration: underline;
+}
+
+a[href]:active,
+a[href]:focus {
+  background-color: var(--standard-text);
+}
+
+/***** utility classes ******/
+a.button {
+  background-color: var(--main-color);
+  font-weight: bold;
+  display: inline-block;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  color: var(--main-color-light);
+}
+a.button:visited {
+  background-color: var(--main-color);
+}
+
+a.button:hover {
+  text-decoration: none;
+  opacity: 0.8;
+
+  transition: opacity 300ms ease;
+}
+
+a.button:active {
+  background-color: var(--main-color-light);
+}
+
+a.button:focus {
+  background-color: var(--main-color);
+  outline: 1px solid black;
+  box-shadow: 0 0 0 3px var(--main-color-light) inset;
+}
+
+/* after this is experimental.... */
+:root {
+  --background-color: #fefbdf;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img {
+  width: 100%;
+  /* height: 100%; */
+  display: block;
+}
+
+main {
+  margin: 0 auto;
+  padding: 0 1rem;
+  max-width: 40rem;
+}
+
+.hero {
+  position: relative;
+}
+
+.hero .overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.overlay .text-wrapper {
+  position: absolute;
+  top: 37%;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+.hero h1,
+.hero p {
+  margin: 1;
+  text-align: center;
+  color: #fffbd3;
+}
+
+.hero h1 {
+  font-size: 5rem;
+  line-height: 1.1;
+  text-shadow: 2px 2px 2px rgba(255, 255, 255, 0.3);
+}
+
+.hero p {
+  font-weight: bold;
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+/* for cards */
+
+a img {
+  width: 100%;
+  display: block;
+}
+
+.cards {
+  margin-top: 6rem;
+  align-items: center;
+  position: relative;
+  max-width: 100rem;
+  margin: 0 auto;
+}
+
+.cards a {
+  text-decoration: none;
+  color: #555;
+}
+
+.card {
+  border: 1px solid #ccc;
+  max-width: 250px;
+  min-width: 100px;
+  float: left;
+  margin-left: 1rem;
+}
+
+.card h2,
+.card p {
+  padding: 0 1rem;
+}
+
+.card h2 {
+  margin-bottom: 0.5rem;
+  margin-top: 0rem;
+}
+
+.card p {
+  margin-bottom: 1.5rem;
+}
+
+.card:hover {
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.6);
+  opacity: 0.8;
+  transition: opacity 300ms ease;
+}
+
+.card a img {
+  width: 100%;
+  display: block;
+  max-width: 400px;
+}
